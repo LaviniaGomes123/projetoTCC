@@ -1,0 +1,200 @@
+import Model.Cadastro_Cliente;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+
+public class CadastroClienteDAOTest {
+
+    @Test
+    public void testCadastroCliente() {
+        CadastroClienteDAO dao = new CadastroClienteDAO();
+
+        Cadastro_Cliente cliente = new Cadastro_Cliente(
+            null,
+            "Carlos Teste",
+            "12345678901",
+            null,
+            "Rua Teste, 123",
+            12345678,
+            "carlos@teste.com",
+            "11988887777"
+        );
+
+        int idGerado = dao.salvarCliente(cliente);
+        assertTrue(idGerado > 0, "ID do cliente deveria ser maior que 0");
+
+        boolean existe = dao.clienteExiste(idGerado);
+        assertTrue(existe, "O cliente deveria existir no banco de dados");
+    }
+
+    @Test
+    public void testEditarCliente() {
+        CadastroClienteDAO dao = new CadastroClienteDAO();
+
+        Cadastro_Cliente cliente = new Cadastro_Cliente(
+            null, "Maria", "98765432100", null, "Rua A", 11111111, "maria@teste.com", "11999998888"
+        );
+        int id = dao.salvarCliente(cliente);
+
+        cliente.setId_cliente(id);
+        cliente.setNome_cliente("Maria Editada");
+        cliente.setEmail("editado@teste.com");
+
+        boolean editado = dao.editarCliente(cliente);
+        assertTrue(editado, "Cliente deveria ser editado com sucesso");
+
+        Cadastro_Cliente clienteEditado = dao.buscarPorId(id);
+        assertEquals("Maria Editada", clienteEditado.getNome_cliente());
+        assertEquals("editado@teste.com", clienteEditado.getEmail());
+    }
+
+    @Test
+    public void testExcluirCliente() {
+        CadastroClienteDAO dao = new CadastroClienteDAO();
+
+        Cadastro_Cliente cliente = new Cadastro_Cliente(
+            null, "João", "00011122233", null, "Rua B", 22222222, "joao@teste.com", "11988887777"
+        );
+        int id = dao.salvarCliente(cliente);
+
+        boolean excluido = dao.excluirCliente(id);
+        assertTrue(excluido, "Cliente deveria ser excluído");
+
+        boolean aindaExiste = dao.clienteExiste(id);
+        assertFalse(aindaExiste, "Cliente não deveria mais existir");
+    }
+
+    @Test
+    public void testListarClientes() {
+        CadastroClienteDAO dao = new CadastroClienteDAO();
+
+        List<Cadastro_Cliente> lista = dao.listarClientes();
+        assertNotNull(lista, "Lista de clientes não pode ser nula");
+        assertTrue(lista.size() >= 0, "Lista de clientes deve conter zero ou mais itens");
+    }
+}
+
+
+
+
+
+=========================================================================
+
+package DAO;
+
+import Model.Cadastro_Cliente;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class CadastroClienteDAO {
+    private final String URL = "jdbc:mysql://localhost:3306/TCC_gil";
+    private final String USUARIO = "root";
+    private final String SENHA = "";
+
+    public int salvarCliente(Cadastro_Cliente cliente) {
+        String sql = "INSERT INTO Cadastro_Cliente (nome_cliente, cpf, cnpj, endereco, cep, email, telefone) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DriverManager.getConnection(URL, USUARIO, SENHA);
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setString(1, cliente.getNome_cliente());
+            stmt.setString(2, cliente.getCpf());
+            stmt.setString(3, cliente.getCnpj());
+            stmt.setString(4, cliente.getEndereco());
+            stmt.setInt(5, cliente.getCep());
+            stmt.setString(6, cliente.getEmail());
+            stmt.setString(7, cliente.getTelefone());
+
+            int affectedRows = stmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                ResultSet rs = stmt.getGeneratedKeys();
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    public boolean clienteExiste(int id) {
+        String sql = "SELECT * FROM Cadastro_Cliente WHERE id_cliente = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USUARIO, SENHA);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean editarCliente(Cadastro_Cliente cliente) {
+        String sql = "UPDATE Cadastro_Cliente SET nome_cliente = ?, cpf = ?, cnpj = ?, endereco = ?, cep = ?, email = ?, telefone = ? WHERE id_cliente = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USUARIO, SENHA);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, cliente.getNome_cliente());
+            stmt.setString(2, cliente.getCpf());
+            stmt.setString(3, cliente.getCnpj());
+            stmt.setString(4, cliente.getEndereco());
+            stmt.setInt(5, cliente.getCep());
+            stmt.setString(6, cliente.getEmail());
+            stmt.setString(7, cliente.getTelefone());
+            stmt.setInt(8, cliente.getId_cliente());
+
+            return stmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean excluirCliente(int id) {
+        String sql = "DELETE FROM Cadastro_Cliente WHERE id_cliente = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USUARIO, SENHA);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<Cadastro_Cliente> listarClientes() {
+        List<Cadastro_Cliente> lista = new ArrayList<>();
+        String sql = "SELECT * FROM Cadastro_Cliente";
+
+        try (Connection conn = DriverManager.getConnection(URL, USUARIO, SENHA);
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                Cadastro_Cliente cliente = new Cadastro_Cliente(
+                    rs.getInt("id_cliente"),
+                    rs.getString("nome_cliente"),
+                    rs.getString("cpf"),
+                    rs.getString("cnpj"),
+                    rs.getString("endereco"),
+                    rs.getInt("cep"),
+                    rs.getString("email"),
+                    rs.getString("telefone")
+                );
+                lista.add(cliente);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return lista;
+    }
+}
+
