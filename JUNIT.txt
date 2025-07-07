@@ -1,3 +1,4 @@
+import DAO.CadastroClienteDAO;
 import Model.Cadastro_Cliente;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -5,25 +6,33 @@ import java.util.List;
 
 public class CadastroClienteDAOTest {
 
+    //declarando que é um teste
     @Test
+    //criando metodo de testar cadastro do cliente
     public void testCadastroCliente() {
         CadastroClienteDAO dao = new CadastroClienteDAO();
 
+        //inserindo novo cliente
         Cadastro_Cliente cliente = new Cadastro_Cliente(
-            null,
-            "Carlos Teste",
-            "12345678901",
-            null,
-            "Rua Teste, 123",
-            12345678,
-            "carlos@teste.com",
-            "11988887777"
+                null,
+                "mula",
+                "09877654411",
+                null,
+                "Rua Teste, 123",
+                30881170,
+                "mula@teste.com",
+                "11988887221"
         );
 
+        //salva cliente novo
         int idGerado = dao.salvarCliente(cliente);
+        //vereifica se o cliente foi salvo corretamente por meio do Id
         assertTrue(idGerado > 0, "ID do cliente deveria ser maior que 0");
 
+        //verifica se o cliente existe
         boolean existe = dao.clienteExiste(idGerado);
+
+        //garante que o cliente exista
         assertTrue(existe, "O cliente deveria existir no banco de dados");
     }
 
@@ -32,17 +41,23 @@ public class CadastroClienteDAOTest {
         CadastroClienteDAO dao = new CadastroClienteDAO();
 
         Cadastro_Cliente cliente = new Cadastro_Cliente(
-            null, "Maria", "98765432100", null, "Rua A", 11111111, "maria@teste.com", "11999998888"
+                //editando dados do cliente
+                null, "Maria", "98765432122", null, "Rua A", 11111111, "maria@teste.com", "11999998888"
         );
+        //salva dados novos
         int id = dao.salvarCliente(cliente);
 
+        //define o id que o banco gerou para o cliente
         cliente.setId_cliente(id);
         cliente.setNome_cliente("Maria Editada");
         cliente.setEmail("editado@teste.com");
 
+
+        //verifica se cliente foi editado corretamente
         boolean editado = dao.editarCliente(cliente);
         assertTrue(editado, "Cliente deveria ser editado com sucesso");
 
+        //busca o id d cliente para verificar dados atualizados
         Cadastro_Cliente clienteEditado = dao.buscarPorId(id);
         assertEquals("Maria Editada", clienteEditado.getNome_cliente());
         assertEquals("editado@teste.com", clienteEditado.getEmail());
@@ -52,14 +67,18 @@ public class CadastroClienteDAOTest {
     public void testExcluirCliente() {
         CadastroClienteDAO dao = new CadastroClienteDAO();
 
+        //Cria um objeto Cadastro_Cliente com os dados de um cliente
         Cadastro_Cliente cliente = new Cadastro_Cliente(
-            null, "João", "00011122233", null, "Rua B", 22222222, "joao@teste.com", "11988887777"
+                null, "João", "00011122233", null, "Rua B", 22222222, "joao@teste.com", "11988887777"
         );
+        //Salva o cliente no banco de dados
         int id = dao.salvarCliente(cliente);
 
+        //Tenta excluir o cliente do banco de dados pelo ID gerado.
         boolean excluido = dao.excluirCliente(id);
         assertTrue(excluido, "Cliente deveria ser excluído");
 
+        //Verifica se o cliente ainda existe no banco após a tentativa de exclusão.
         boolean aindaExiste = dao.clienteExiste(id);
         assertFalse(aindaExiste, "Cliente não deveria mais existir");
     }
@@ -68,12 +87,19 @@ public class CadastroClienteDAOTest {
     public void testListarClientes() {
         CadastroClienteDAO dao = new CadastroClienteDAO();
 
+        //chama o metodo para listar os objetos presentes no banco
         List<Cadastro_Cliente> lista = dao.listarClientes();
+        //verificar se um objeto NÃO é nulo.
         assertNotNull(lista, "Lista de clientes não pode ser nula");
+        //garante que o metodo nao retorne uma lista invalida
         assertTrue(lista.size() >= 0, "Lista de clientes deve conter zero ou mais itens");
+
+        //Percorre toda a lista e imprime no console
+        for (Cadastro_Cliente c : lista) {
+            System.out.println("Cliente: " + c.getNome_cliente() + ", ID: " + c.getId_cliente());
+        }
     }
 }
-
 
 
 
@@ -178,14 +204,14 @@ public class CadastroClienteDAO {
 
             while (rs.next()) {
                 Cadastro_Cliente cliente = new Cadastro_Cliente(
-                    rs.getInt("id_cliente"),
-                    rs.getString("nome_cliente"),
-                    rs.getString("cpf"),
-                    rs.getString("cnpj"),
-                    rs.getString("endereco"),
-                    rs.getInt("cep"),
-                    rs.getString("email"),
-                    rs.getString("telefone")
+                        rs.getInt("id_cliente"),
+                        rs.getString("nome_cliente"),
+                        rs.getString("cpf"),
+                        rs.getString("cnpj"),
+                        rs.getString("endereco"),
+                        rs.getInt("cep"),
+                        rs.getString("email"),
+                        rs.getString("telefone")
                 );
                 lista.add(cliente);
             }
@@ -196,5 +222,35 @@ public class CadastroClienteDAO {
 
         return lista;
     }
+
+    public Cadastro_Cliente buscarPorId(int id) {
+        String sql = "SELECT * FROM Cadastro_Cliente WHERE id_cliente = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USUARIO, SENHA);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return new Cadastro_Cliente(
+                        rs.getInt("id_cliente"),
+                        rs.getString("nome_cliente"),
+                        rs.getString("cpf"),
+                        rs.getString("cnpj"),
+                        rs.getString("endereco"),
+                        rs.getInt("cep"),
+                        rs.getString("email"),
+                        rs.getString("telefone")
+                );
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }
+
+
 
