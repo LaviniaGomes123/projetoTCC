@@ -103,7 +103,6 @@ header.pagina h1 {
     font-weight: 700;
 }
 /*final do css do cabeçalho*/
-
 .container {
   width: 90%;
   max-width: 800px;
@@ -114,6 +113,13 @@ header.pagina h1 {
   box-shadow: 0 4px 10px rgba(36, 192, 235, 0.2);
   padding: 30px;
 }
+
+ .container h1{
+  text-align: center;
+  padding: 40px 20px 30px;
+  width: 20;
+ }
+
 
 .input-group {
   display: flex;
@@ -130,14 +136,15 @@ input[type="text"],
 input[type="number"],
 input[type="datetime-local"],
 textarea {
-  background-color: #f8f9fa;
+ background-color: #f8f9fa;
     padding: 12px 15px;
-    border: 1px solid #1d87b8;
+    border: 1px solid #24c0eb;
     border-radius: 8px;
     font-size: 16px;
     color: #333;
+    width: 100%;
     transition: border-color 0.3s, box-shadow 0.3s;
-  
+
 }
 
 textarea {
@@ -145,7 +152,30 @@ textarea {
 }
 
 input[type="file"] {
-  padding: 5px 0;
+  display: none;
+}
+
+.custom-file-label {
+  display: inline-block;
+  padding: 10px 16px;
+  background: #24c0eb;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  width: fit-content;
+  transition: background 0.3s ease;
+}
+
+.custom-file-label:hover {
+  background: #1b9ec9;
+}
+
+.file-name {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #555;
 }
 
 .required {
@@ -157,31 +187,39 @@ input[type="file"] {
   width: 100%;
   padding: 14px;
   font-size: 18px;
-  background-color: #24c0eb;
+  background: linear-gradient(135deg, #24c0eb, #1b9ec9);
   color: white;
   border: none;
   border-radius: 12px;
   font-weight: bold;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(36, 192, 235, 0.4);
   margin-top: 20px;
+  letter-spacing: 1px;
 }
 
 .submit-btn:hover {
-  background-color: #1b9ec9;
+  background: linear-gradient(135deg, #1b9ec9, #1794ba);
+  box-shadow: 0 6px 14px rgba(27, 158, 201, 0.5);
+  transform: translateY(-2px);
 }
 
-/* Media Query para telas pequenas */
+.submit-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 3px 6px rgba(27, 158, 201, 0.3);
+}
+
 @media (max-width: 600px) {
   .topo {
     padding: 10px 20px;
-    flex-direction: column; /* Empilha os itens verticalmente */
-    text-align: center; /* Centraliza texto e links */
+    flex-direction: column;
+    text-align: center;
   }
 
   nav.menu {
     margin-bottom: 10px;
-    flex-direction: column; /* Empilha os links na vertical em telas pequenas */
+    flex-direction: column;
   }
 
   .container {
@@ -190,15 +228,15 @@ input[type="file"] {
   }
 
   .submit-btn {
-    font-size: 16px; /* Diminui o tamanho da fonte */
+    font-size: 16px;
     padding: 12px;
   }
 
   .usuario {
-    font-size: 14px; /* Ajusta o tamanho da fonte */
+    font-size: 14px;
   }
 
   nav.menu a {
-    margin: 5px 0; /* Ajusta o espaçamento dos links */
+    margin: 5px 0;
   }
 }

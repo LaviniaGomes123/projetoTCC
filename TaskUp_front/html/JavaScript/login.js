@@ -22,7 +22,7 @@ document.getElementById('form-login').addEventListener('submit', async function(
 
     if (resposta.ok) {
       localStorage.setItem('token', dados.token);
-      window.location.href = 'inicial.html';
+      window.location.href = 'inicio.html';
     } else {
       mensagemErro.textContent = dados.mensagem || 'Usuário ou senha inválidos.';
     }

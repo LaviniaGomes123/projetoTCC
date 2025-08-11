@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="css/CadastroAparelho.css" />
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/cadastroAparelho.css" />
   <title>Cadastro de Aparelho | TaskUP</title>
 </head>
 <body>
@@ -12,9 +15,9 @@
         <div class="logo">
           <img src="img/icone.png" alt="Logo da TaskUp" class="logo-img">
           <h1>TaskUp</h1>
-        </div>
+          </div>
     <nav class="menu">
-          <a href="inicial.html">Início</a>
+     <a href="inicial.html">Início</a>
           <a href="cadastroPeca.html">Cadastrar Peça</a>
           <a href="cadastroAparelho.html">Cadastrar Aparelho</a>
           <a href="cadastroCliente.html">Cadastrar Cliente</a>
@@ -26,11 +29,8 @@
   </div>
 
   <div class="container">
-    <form id="formulario" enctype="multipart/form-data">
-       <header class="pagina">
-      <h1>Cadastrar Aparelho:</h1>
-    </header>
-    
+    <h1>Cadastro de Aparelho</h1>
+    <form id="aparelhoForm" enctype="multipart/form-data">
       
       <div class="input-group">
         <label for="nomeAparelho">Nome do Aparelho <span class="required">*</span></label>
@@ -73,16 +73,25 @@
       </div>
 
       <div class="input-group">
-        <label for="fotoAparelho">Foto do Aparelho (opcional)</label>
-        <input type="file" id="fotoAparelho" name="foto_aparelho" accept="image/*" />
-      </div>
+  <label for="fotoAparelho">Foto do Aparelho (opcional)</label>
+  <label for="fotoAparelho" class="custom-file-label">Escolher Arquivo</label>
+  <input type="file" id="fotoAparelho" name="fotoAparelho" accept="image/*" onchange="mostrarNomeArquivo(this)">
+  <div class="file-name" id="nomeArquivo">Nenhum arquivo escolhido</div>
+</div>
+
 
       <button type="submit" class="submit-btn">Cadastrar Aparelho</button>
     </form>
   </div>
 
-  
-  <script src="js/cadastroAparelho.js"></script>
-
+  <script>
+    // Configurar a data padrão para "dataCadastro" como o datetime atual no formato local:
+    const dataCadastroInput = document.getElementById('dataCadastro');
+    if (dataCadastroInput) {
+      const now = new Date();
+      const localISOTime = now.toISOString().slice(0,16); // YYYY-MM-DDTHH:mm
+      dataCadastroInput.value = localISOTime;
+    }
+  </script>
 </body>
 </html>
