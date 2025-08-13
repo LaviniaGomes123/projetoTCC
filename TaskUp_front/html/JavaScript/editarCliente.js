@@ -7,7 +7,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const cpfCnpjInput = document.querySelector('input[name="cpfCnpj"]');
     const telefoneInput = document.querySelector('input[name="telefone"]');
     const cepInput = document.querySelector('input[name="cep"]');
-    
+    const enderecoInput = document.querySelector('input[name="endereco"]');
+    const bairroInput = document.querySelector('input[name="bairro"]');
+    const cidadeInput = document.querySelector('input[name="cidade"]');
+    const estadoInput = document.querySelector('input[name="estado"]');
+
     let tipoAnterior = tipoClienteSelect.value;
     const params = new URLSearchParams(window.location.search);
     const clienteId = params.get('id');
@@ -36,8 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Função para buscar os dados do cliente na API e preencher o formulário
     async function buscarEPreencherCliente(id) {
         try {
-            // URL da sua API para buscar um cliente pelo ID
-            const response = await fetch(`/api/clientes/${id}`);
+            const response = await fetch(`http://localhost:8080/api/cliente/${id}`);
             
             if (!response.ok) {
                 throw new Error(`Erro ao buscar cliente: ${response.statusText}`);
@@ -45,20 +48,23 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const cliente = await response.json();
             
-            // Preenche os campos do formulário com os dados da API
-            tipoClienteSelect.value = cliente.tipoCliente || 'fisica';
-            tipoAnterior = tipoClienteSelect.value; // Atualiza o tipo anterior
-            aplicarMascaraCpfCnpj(cliente.tipoCliente || 'fisica');
+            // Identifica se é pessoa física (CPF) ou jurídica (CNPJ)
+            const tipoCliente = cliente.cpf ? 'fisica' : 'juridica';
+
+            tipoClienteSelect.value = tipoCliente;
+            tipoAnterior = tipoCliente;
+            aplicarMascaraCpfCnpj(tipoCliente);
             
-            form.querySelector('input[name="nome"]').value = cliente.nome || '';
-            form.querySelector('input[name="cpfCnpj"]').value = cliente.cpfCnpj || '';
-            form.querySelector('input[name="telefone"]').value = cliente.telefone || '';
+            // Preenche os campos do formulário com os dados da API
+            nomeInput.value = cliente.nome_cliente || '';
+            cpfCnpjInput.value = cliente.cpf || cliente.cnpj || '';
+            telefoneInput.value = cliente.telefone || '';
             form.querySelector('input[name="email"]').value = cliente.email || '';
-            form.querySelector('input[name="cep"]').value = cliente.cep || '';
-            form.querySelector('input[name="endereco"]').value = cliente.endereco || '';
-            form.querySelector('input[name="bairro"]').value = cliente.bairro || '';
-            form.querySelector('input[name="cidade"]').value = cliente.cidade || '';
-            form.querySelector('input[name="estado"]').value = cliente.estado || '';
+            cepInput.value = cliente.cep || '';
+            enderecoInput.value = cliente.endereco || '';
+            bairroInput.value = cliente.bairro || '';
+            cidadeInput.value = cliente.cidade || '';
+            estadoInput.value = cliente.estado || '';
 
         } catch (error) {
             console.error("Houve um erro na busca do cliente:", error);
@@ -70,9 +76,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Função para enviar os dados atualizados para a API
     async function salvarAlteracoes(id, dados) {
         try {
-            // URL da sua API para atualizar um cliente pelo ID
-            const response = await fetch(`/api/clientes/${id}`, {
-                method: 'PUT', // Método para atualização
+            const response = await fetch(`http://localhost:8080/api/cliente/${id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -96,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (clienteId) {
         buscarEPreencherCliente(clienteId);
     } else {
-        // Se não houver ID, aplica a máscara inicial de CPF e labels
         aplicarMascaraCpfCnpj('fisica');
         console.log('Nenhum ID de cliente encontrado. O formulário está vazio.');
     }
@@ -109,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirmacao) {
             aplicarMascaraCpfCnpj(tipoSelecionado);
             tipoAnterior = tipoSelecionado;
-            cpfCnpjInput.value = ''; // Limpa o campo ao mudar o tipo
+            cpfCnpjInput.value = '';
         } else {
             this.value = tipoAnterior;
         }
@@ -123,20 +127,26 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Não é possível salvar sem um ID de cliente.');
             return;
         }
-
+        
         const dadosAtualizados = {
-            id: clienteId,
-            tipoCliente: tipoClienteSelect.value,
-            nome: nomeInput.value,
-            cpfCnpj: cpfCnpjInput.value,
+            nome_cliente: nomeInput.value,
             telefone: telefoneInput.value,
             email: form.querySelector('input[name="email"]').value,
             cep: cepInput.value,
-            endereco: form.querySelector('input[name="endereco"]').value,
-            bairro: form.querySelector('input[name="bairro"]').value,
-            cidade: form.querySelector('input[name="cidade"]').value,
-            estado: form.querySelector('input[name="estado"]').value,
+            endereco: enderecoInput.value,
+            bairro: bairroInput.value,
+            cidade: cidadeInput.value,
+            estado: estadoInput.value,
         };
+
+        // Adiciona o CPF ou CNPJ ao objeto antes de enviar
+        if (tipoClienteSelect.value === 'fisica') {
+            dadosAtualizados.cpf = cpfCnpjInput.value.replace(/[^\d]/g, '');
+            dadosAtualizados.cnpj = null;
+        } else { // 'juridica'
+            dadosAtualizados.cnpj = cpfCnpjInput.value.replace(/[^\d]/g, '');
+            dadosAtualizados.cpf = null;
+        }
 
         salvarAlteracoes(clienteId, dadosAtualizados);
     });

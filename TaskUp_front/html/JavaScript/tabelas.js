@@ -12,13 +12,13 @@ function criarBotoesEditarExcluir(tipoTabela) {
 
     switch (tipoTabela) {
       case 'clientes':
-        urlEditar = `editar_cliente.html?id=${id}`;
+        urlEditar = `editarCliente.html?id=${id}`;
         break;
       case 'aparelhos':
-        urlEditar = `editar_aparelho.html?id=${id}`;
+        urlEditar = `editarAparelho.html?id=${id}`;
         break;
       case 'pecas':
-        urlEditar = `editar_peca.html?id=${id}`;
+        urlEditar = `editarpeca.html?id=${id}`;
         break;
       default:
         alert('Tipo de tabela desconhecido');
