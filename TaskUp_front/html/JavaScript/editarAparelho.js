@@ -3,92 +3,105 @@ document.addEventListener('DOMContentLoaded', function() {
     const params = new URLSearchParams(window.location.search);
     const aparelhoId = params.get('id');
 
+    // Seleciona todos os campos
     const modeloInput = document.querySelector('input[name="modelo"]');
-    const dataInput = document.querySelector('input[name="data"]');
+    const dataHoraInput = document.querySelector('input[name="dataHora"]');
     const defeitoInput = document.querySelector('input[name="defeito"]');
     const observacaoInput = document.querySelector('textarea[name="observacao"]');
     const servicoInput = document.querySelector('input[name="servico"]');
     const pecasInput = document.querySelector('input[name="pecas"]');
     const valorInput = document.querySelector('input[name="valor"]');
+    const statusSelect = document.getElementById('status');
 
-    async function buscarEPreencherAparelho(id) {
+    // Função para formatar dados para a API
+    function formatarParaAPI() {
+        return {
+            id: aparelhoId,
+            nomeAparelho: modeloInput.value.trim(),
+            dataCadastro: dataHoraInput.value ? `${dataHoraInput.value}:00` : null,
+            defeito: defeitoInput.value.trim(),
+            observacoes: observacaoInput.value.trim(),
+            servico_executados: servicoInput.value.trim(),
+            pecas_aplicadas: pecasInput.value.trim(),
+            valor_total: parseFloat(valorInput.value.replace(',', '.')) || 0,
+            status: statusSelect.value
+        };
+    }
+
+    // Carrega os dados do aparelho
+    async function carregarDados() {
         try {
-            const response = await fetch(`http://localhost:8080/api/aparelhos/${id}`);
+            const response = await fetch(`http://localhost:8080/api/aparelhos/${aparelhoId}`);
             
-            if (!response.ok) {
-                alert("Erro ao carregar dados do aparelho. Verifique se o ID está correto ou se a API está online.");
-                throw new Error(`Erro ao buscar aparelho: ${response.statusText}`);
+            if (!response.ok) throw new Error('Erro ao carregar dados');
+            
+            const data = await response.json();
+            
+            modeloInput.value = data.nomeAparelho || '';
+            if (data.dataCadastro) {
+                dataHoraInput.value = data.dataCadastro.substring(0, 16);
             }
+            defeitoInput.value = data.defeito || '';
+            observacaoInput.value = data.observacoes || '';
+            servicoInput.value = data.servico_executados || '';
+            pecasInput.value = data.pecas_aplicadas || '';
+            valorInput.value = data.valor_total || '';
+            statusSelect.value = data.status || 'EM_ANALISE';
             
-            const aparelho = await response.json();
-            
-            modeloInput.value = aparelho.nomeAparelho || '';
-            
-            if (aparelho.dataCadastro) {
-                dataInput.value = aparelho.dataCadastro.substring(0, 10);
-            }
-            
-            defeitoInput.value = aparelho.defeito || '';
-            observacaoInput.value = aparelho.observacoes || '';
-            servicoInput.value = aparelho.servico_executados || '';
-            pecasInput.value = aparelho.pecas_aplicadas || '';
-            valorInput.value = aparelho.valor_total || '';
-
         } catch (error) {
-            console.error("Houve um erro na busca do aparelho:", error);
+            console.error('Erro:', error);
+            alert('Não foi possível carregar os dados');
             window.location.href = 'tabelas.html';
         }
     }
 
-    async function salvarAlteracoes(id, dados) {
+    // Salva as alterações
+    async function salvarDados(dados) {
         try {
-            const response = await fetch(`http://localhost:8080/api/aparelhos/${id}`, {
+            console.log('Dados a serem enviados:', dados); // Para debug
+            
+            const response = await fetch(`http://localhost:8080/api/aparelhos/${aparelhoId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(dados),
+                body: JSON.stringify(dados)
             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                alert(`Não foi possível salvar as alterações. Tente novamente.\nDetalhes: ${response.statusText}`);
-                throw new Error(`Erro ao salvar alterações: ${response.statusText} - ${errorText}`);
-            }
+            const responseData = await response.json();
+            console.log('Resposta da API:', responseData); // Para debug
             
-            alert('Aparelho atualizado com sucesso!');
-            window.location.href = 'tabelas.html';
+            if (!response.ok) {
+                throw new Error(responseData.message || 'Erro ao salvar');
+            }
 
+            alert('Alterações salvas com sucesso!');
+            window.location.href = 'tabelas.html';
+            
         } catch (error) {
-            console.error("Houve um erro ao salvar os dados:", error);
+            console.error('Erro:', error);
+            alert(`Erro ao salvar: ${error.message}`);
         }
     }
 
+    // Inicialização
     if (aparelhoId) {
-        buscarEPreencherAparelho(aparelhoId);
+        carregarDados();
     } else {
-        alert('Nenhum ID de aparelho encontrado. O formulário está vazio.');
+        alert('Nenhum aparelho selecionado');
+        window.location.href = 'tabelas.html';
     }
 
-    form.addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        if (!aparelhoId) {
-            alert('Não é possível salvar sem um ID de aparelho.');
+    // Evento de submit
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        if (!modeloInput.value.trim()) {
+            alert('O modelo do aparelho é obrigatório');
             return;
         }
 
-        const dadosAtualizados = {
-            id: aparelhoId,
-            nomeAparelho: modeloInput.value,
-            dataCadastro: dataInput.value,
-            defeito: defeitoInput.value,
-            observacoes: observacaoInput.value,
-            servico_executados: servicoInput.value,
-            pecas_aplicadas: pecasInput.value,
-            valor_total: parseFloat(valorInput.value) || 0,
-        };
-
-        salvarAlteracoes(aparelhoId, dadosAtualizados);
+        const dados = formatarParaAPI();
+        await salvarDados(dados);
     });
 });

@@ -24,7 +24,6 @@
           <a href="cadastroCliente.html">Cadastrar Cliente</a>
           <a href="tabelas.html">Tabelas</a>
           <a href="agenda.html">Agenda</a>
-          
         </nav>
         <div class="usuario">Olá, Técnico</div>
       </div>
@@ -34,17 +33,16 @@
     <form class="formulario">
        <header class="pagina">
       <h1>Editar Aparelho:</h1>
-      
     </header>
       <div class="campo">
         <label>Modelo do aparelho:</label>
         <input type="text" name="modelo" placeholder="Ex: iPhone 13 Pro Max" />
       </div>
 
-      <div class="campo">
-        <label>Data:</label>
-        <input type="date" name="data" />
-      </div>
+<div class="campo">
+  <label>Data e hora:</label>
+  <input type="datetime-local" name="dataHora" id="dataHora" />
+</div>
 
       <div class="campo">
         <label>Defeito:</label>
@@ -71,12 +69,24 @@
         <input type="text" name="valor" placeholder="Ex: 250,00" />
       </div>
 
+      <div class="campo">
+    <label>Status:</label>
+    <select name="status" id="status" class="status-select">
+        <option value="EM_ANALISE">Em Análise</option>
+        <option value="EM_ANDAMENTO">Em Andamento</option>
+        <option value="FINALIZADO">Finalizado</option>
+    </select>
+</div>
+
       <div class="botoes">
         <button type="button" class="cancelar" onclick="window.location.href='tabelas.html'">Cancelar</button>
         <button type="submit" class="salvar">Salvar</button>
       </div>
     </form>
     </div>
-     <script src="js/editarAparelho.js"></script>
+     <script src="JavaScript/editarAparelho.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="JavaScript/custom-alerts.js"></script>
 </body>
 </html>

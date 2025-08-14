@@ -236,3 +236,29 @@ header.pagina h1 {
     width: 100%;
   }
 }
+
+.campo {
+  display: flex;
+  flex-direction: column;
+}
+
+.campo label {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #555;
+  font-size: 1em;
+}
+
+.campo input[type="text"],
+.campo input[type="number"],
+.campo input[type="email"],
+.campo select {
+  background-color: #f8f9fa;
+  padding: 12px 15px;
+  border: 1px solid #24c0eb;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #333;
+  width: 100%;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}

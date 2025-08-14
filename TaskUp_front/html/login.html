@@ -3,34 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - TaskUp</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Login TaskUp</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/login.css">
+    <style>
+        /* Estilos Gerais */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #24c0eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .login-container {
+            max-width: 450px;
+            width: 100%;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .login-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header .logo {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .login-header h1 {
+            font-size: 2.5em;
+            color: #24c0eb;
+            margin: 0;
+        }
+
+        .login-card h2 {
+            font-size: 1.5em;
+            color: #555;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        /* Campos de Entrada */
+        .input-group {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #24c0eb;
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+            background-color: #f8f9fa;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #1e9ac2;
+            box-shadow: 0 0 0 3px rgba(36, 192, 235, 0.2);
+        }
+
+        /* Botões */
+        .login-button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background-color: #24c0eb;
+            color: #fff;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .login-button:hover {
+            background-color: #1e9ac2;
+            transform: translateY(-2px);
+        }
+
+        /* Mensagens de Status */
+        #passo-codigo {
+            display: none;
+            transition: all 0.3s ease;
+        }
+
+        .mensagem-status {
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 8px;
+            display: none;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .sucesso {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .erro {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Responsividade */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px;
+                border-radius: 0;
+            }
+            
+            .login-header h1 {
+                font-size: 2em;
+            }
+            
+            .login-card h2 {
+                font-size: 1.3em;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    <div class="login-container">
-        <div class="login-header">
-            <img src="img/icone.png" alt="Logo da TaskUp" class="logo">
-            <h1>TaskUp</h1>
+<div class="login-container">
+    <div class="login-header">
+        <img src="img/icone.png" alt="Logo TaskUp" class="logo">
+        <h1>TaskUp</h1>
+    </div>
+
+    <div class="login-card">
+        <h2>Organização que gera resultado</h2>
+        
+        <div id="mensagem-status" class="mensagem-status"></div>
+
+        <!-- Passo 1: Email -->
+        <div id="passo-email">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" placeholder="Digite seu e-mail">
+            </div>
+            <button class="login-button" onclick="solicitarCodigo()">Enviar código</button>
         </div>
-        <div class="login-card">
-            <h2>Organização que gera resultado</h2>
-            <form action="#" method="post">
-                <div class="input-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="Digite seu email" required>
-                </div>
-                <div class="input-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
-                </div>
-                <button type="submit" class="login-button">Entrar</button>
-            </form>
+
+        <!-- Passo 2: Código -->
+        <div id="passo-codigo">
+            <div class="input-group">
+                <label for="codigo">Código de Verificação</label>
+                <input type="text" id="codigo" placeholder="Digite o código recebido">
+            </div>
+            <button class="login-button" onclick="validarCodigo()">Validar código</button>
         </div>
     </div>
+</div>
+
+<script>
+    function mostrarMensagem(texto, tipo) {
+        const mensagem = document.getElementById('mensagem-status');
+        mensagem.textContent = texto;
+        mensagem.className = `mensagem-status ${tipo}`;
+        mensagem.style.display = 'block';
+    }
+
+    async function solicitarCodigo() {
+        const email = document.getElementById('email').value.trim();
+        
+        if (!email) {
+            mostrarMensagem('Por favor, digite seu e-mail', 'erro');
+            return;
+        }
+
+        mostrarMensagem('Enviando código...', 'sucesso');
+
+        try {
+            const response = await fetch('http://localhost:8080/api/auth/solicitar-codigo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                mostrarMensagem('Código enviado! Verifique seu e-mail.', 'sucesso');
+                // Mostra o campo de código e esconde o de email
+                document.getElementById('passo-email').style.display = 'none';
+                document.getElementById('passo-codigo').style.display = 'block';
+            } else {
+                mostrarMensagem(data.message || 'Erro ao enviar código', 'erro');
+            }
+        } catch (error) {
+            mostrarMensagem('Erro na conexão com o servidor', 'erro');
+            console.error("Erro:", error);
+        }
+    }
+
+   async function validarCodigo() {
+    const email = document.getElementById('email').value.trim();
+    const codigo = document.getElementById('codigo').value.trim();
+    
+    mostrarMensagem('Validando código...', 'sucesso');
+
+    try {
+        const response = await fetch('http://localhost:8080/api/auth/validar-codigo', {
+            method: 'POST',
+            mode: 'cors', // ← Adicione esta linha
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, codigo })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Erro na validação');
+        }
+
+        const data = await response.json();
+        mostrarMensagem('Redirecionando...', 'sucesso');
+        setTimeout(() => window.location.href = 'inicial.html', 2000);
+        
+    } catch (error) {
+        mostrarMensagem(error.message || 'Erro na conexão', 'erro');
+        console.error("Detalhes do erro:", error);
+    }
+}
+</script>
 
 </body>
 </html>

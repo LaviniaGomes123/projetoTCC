@@ -1,11 +1,16 @@
+const BACKEND_URL = 'http://localhost:8080';
+
+
+// -------------------- CHAMADAS INICIAIS --------------------
 window.addEventListener('DOMContentLoaded', () => {
   fetchTotalPecas();
   fetchAlertasEstoque();
   fetchOsEmAberto();
+  fetchAgendamentosHoje();
+  carregarGraficoOs();
 });
 
-const BACKEND_URL = 'http://localhost:8080';
-
+// -------------------- TOTAL PEÇAS --------------------
 async function fetchTotalPecas() {
   try {
     const res = await fetch(`${BACKEND_URL}/api/peca`);
@@ -17,6 +22,7 @@ async function fetchTotalPecas() {
   }
 }
 
+// -------------------- ALERTAS DE ESTOQUE --------------------
 async function fetchAlertasEstoque() {
   try {
     const res = await fetch(`${BACKEND_URL}/api/avisos`);
@@ -26,16 +32,22 @@ async function fetchAlertasEstoque() {
     document.getElementById('alertas-estoque').textContent = avisos.length;
 
     const tbody = document.getElementById('avisos-tbody');
-    tbody.innerHTML = ''; // limpa tabela
+    tbody.innerHTML = '';
+
     avisos.forEach(aviso => {
+      const d = aviso.dataAlerta;
+      const dataFormatada = d
+        ? new Date(d[0], d[1] - 1, d[2], d[3], d[4]).toLocaleString('pt-BR')
+        : '';
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${aviso.id}</td>
-        <td>${aviso.pecaId}</td>
-        <td>${aviso.nomePeca}</td>
-        <td>${aviso.quantidadeEstoque}</td>
-        <td>${aviso.estoqueMinimo}</td>
-        <td>${aviso.dataAlerta}</td>
+        <td>${aviso.peca?.id ?? ''}</td>
+        <td>${aviso.peca?.nome ?? ''}</td>
+        <td>${aviso.quantidadeEstoque ?? aviso.peca?.quantidade_estoque ?? ''}</td>
+        <td>${aviso.estoqueMinimo ?? aviso.peca?.estoque_minimo ?? ''}</td>
+        <td>${dataFormatada}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -44,73 +56,52 @@ async function fetchAlertasEstoque() {
   }
 }
 
+// -------------------- OS EM ABERTO --------------------
 async function fetchOsEmAberto() {
   try {
-    const status = encodeURIComponent('Em analise'); // cuidado com espaços
+    const status = encodeURIComponent('Em analise');
     const response = await fetch(`${BACKEND_URL}/api/aparelhos/status/${status}`);
     if (!response.ok) throw new Error('Erro ao buscar OS em aberto');
 
     const aparelhos = await response.json();
-
-    // Atualizar o elemento com a quantidade encontrada
     document.getElementById('os-em-aberto').textContent = aparelhos.length;
-
   } catch (error) {
     console.error('fetchOsEmAberto:', error);
   }
 }
-async function fetchResumoSemanal() {
+
+// -------------------- AGENDAMENTOS DE HOJE --------------------
+async function fetchAgendamentosHoje() {
   try {
-    const res = await fetch('http://localhost:8080/api/aparelhos/resumo-semanal');
-    if (!res.ok) throw new Error('Erro ao buscar resumo semanal');
-    const dados = await res.json();
+    const response = await fetch(`${BACKEND_URL}/api/agenda`);
+    if (!response.ok) throw new Error('Erro na requisição');
+    const agendamentos = await response.json();
 
-    const labels = dados.map(d => d.dia);
-    const finalizadas = dados.map(d => d.finalizadas);
-    const emAndamento = dados.map(d => d.emAndamento);
+    const hoje = new Date();
+    const anoHoje = hoje.getFullYear();
+    const mesHoje = hoje.getMonth() + 1;
+    const diaHoje = hoje.getDate();
 
-    const ctx = document.getElementById('graficoOs').getContext('2d');
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Finalizadas',
-            data: finalizadas,
-            backgroundColor: 'rgba(36, 192, 235, 0.7)'
-          },
-          {
-            label: 'Em andamento',
-            data: emAndamento,
-            backgroundColor: 'rgba(240, 128, 128, 0.7)'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { stepSize: 1 }
-          }
-        }
-      }
+    const agendamentosHoje = agendamentos.filter(item => {
+      const data = item.dataAgendada;
+      return data[0] === anoHoje && data[1] === mesHoje && data[2] === diaHoje;
     });
 
+    document.getElementById('agendamentos-hoje').textContent = agendamentosHoje.length;
   } catch (error) {
-    console.error(error);
+    console.error('Erro ao buscar agendamentos:', error);
+    document.getElementById('agendamentos-hoje').textContent = 'Erro';
   }
 }
 
-
-let graficoOs = null;  // variável global para o gráfico
+// -------------------- GRÁFICO DE OS --------------------
+let graficoOs = null;
 
 async function carregarGraficoOs() {
   const ctx = document.getElementById('graficoOs').getContext('2d');
 
   try {
-    const response = await fetch('http://localhost:8080/api/aparelhos/resumo-semanal');
+    const response = await fetch(`${BACKEND_URL}/api/aparelhos/resumo-semanal`);
     if (!response.ok) throw new Error('Erro ao buscar dados do gráfico');
 
     const dados = await response.json();
@@ -119,7 +110,6 @@ async function carregarGraficoOs() {
     const finalizadas = dados.map(item => item.finalizadas);
     const emAndamento = dados.map(item => item.emAndamento);
 
-    // Se já existe um gráfico, destrua antes de criar outro
     if (graficoOs) {
       graficoOs.destroy();
     }
@@ -149,79 +139,26 @@ async function carregarGraficoOs() {
       },
       options: {
         responsive: true,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        stacked: false,
+        interaction: { mode: 'index', intersect: false },
         plugins: {
           title: {
             display: true,
             text: 'Desempenho Operacional por Semana',
             font: { size: 18 },
-          },
-          tooltip: {
-            enabled: true,
           }
         },
         scales: {
           y: {
             beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Quantidade de Ordens',
-            }
+            title: { display: true, text: 'Quantidade de Ordens' }
           },
           x: {
-            title: {
-              display: true,
-              text: 'Dia',
-            }
+            title: { display: true, text: 'Dia' }
           }
         }
       }
     });
-
   } catch (error) {
     console.error('Erro no gráfico:', error);
   }
 }
-
-window.addEventListener('DOMContentLoaded', () => {
-  carregarGraficoOs();
-});
-
-async function fetchAgendamentosHoje() {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/agenda`);
-    if (!response.ok) throw new Error('Erro na requisição');
-    const agendamentos = await response.json();
-
-    // Pega a data atual (ano, mês, dia)
-    const hoje = new Date();
-    const anoHoje = hoje.getFullYear();
-    const mesHoje = hoje.getMonth() + 1;  // getMonth() vai de 0 a 11
-    const diaHoje = hoje.getDate();
-
-    // Filtra os agendamentos cuja dataAgendada tem ano, mes e dia iguais a hoje
-    const agendamentosHoje = agendamentos.filter(item => {
-      const data = item.dataAgendada; // Exemplo: [2025, 8, 11, 14, 0]
-      return data[0] === anoHoje && data[1] === mesHoje && data[2] === diaHoje;
-    });
-
-    // Atualiza o campo na tela
-    document.getElementById('agendamentos-hoje').textContent = agendamentosHoje.length;
-
-  } catch (error) {
-    console.error('Erro ao buscar agendamentos:', error);
-    document.getElementById('agendamentos-hoje').textContent = 'Erro';
-  }
-}
-
-// No carregamento da página, chama a função junto com os outros fetches:
-window.addEventListener('DOMContentLoaded', () => {
-  fetchTotalPecas();
-  fetchAlertasEstoque();
-  fetchOsEmAberto();
-  fetchAgendamentosHoje();
-});

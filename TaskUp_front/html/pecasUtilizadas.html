@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Peças Utilizadas | TaskUP</title>
+
+  <!-- Fonte Poppins do Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* MESMOS ESTILOS da página Todas as Peças para manter padrão */
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #ffffff;
+      font-family: 'Poppins', sans-serif;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topo {
+      background-color: #24c0eb;
+      border-bottom: 2px solid #24c0eb;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .topo-conteudo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      cursor: default;
+    }
+
+    .logo-img {
+      width: 35px;
+      height: 35px;
+    }
+
+    .menu {
+      display: flex;
+      gap: 30px;
+    }
+
+    .menu a {
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      position: relative;
+      padding: 8px 12px;
+    }
+
+    .menu a:hover {
+      color: #ffffff;
+    }
+
+    .menu a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: #ffffff;
+      transition: width 0.3s ease;
+    }
+
+    .menu a:hover::after {
+      width: 100%;
+    }
+
+    .usuario {
+      background-color: #24c0eb;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 0.9em;
+      user-select: none;
+    }
+
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 40px auto;
+      background-color: #fff;
+      border: 2px solid #24c0eb;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(36, 192, 235, 0.2);
+      padding: 30px;
+      flex-grow: 1;
+    }
+
+    .titulo-com-botao {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 40px 0 20px;
+      border-bottom: 2px solid #24c0eb;
+      padding-bottom: 10px;
+    }
+
+    .titulo-com-botao h2 {
+      margin: 0;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .btn-voltar {
+      background-color: transparent;
+      color: #24c0eb;
+      padding: 8px 18px;
+      border-radius: 25px;
+      border: 2px solid #24c0eb;
+      font-weight: 600;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      user-select: none;
+    }
+    .btn-voltar:hover {
+      background-color: #24c0eb;
+      color: white;
+      box-shadow: 0 0 8px #24c0ebaa;
+    }
+
+    .tabela-wrapper {
+      overflow-x: auto;
+      margin-top: 20px;
+      margin-bottom: 40px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #333;
+      margin-bottom: 30px;
+      min-width: 1100px;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ffffff;
+      white-space: nowrap;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    th {
+      background-color: #ffffff;
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      color: #333;
+      user-select: none;
+      box-shadow: inset 0 -1px 0 #ffffff;
+      z-index: 5;
+    }
+
+    tr:hover {
+      background-color: rgba(36, 192, 235, 0.1);
+      cursor: default;
+    }
+
+    .loading,
+    .no-data {
+      padding: 20px;
+      text-align: center;
+      font-style: italic;
+      color: #24c0eb;
+      font-weight: 600;
+    }
+
+    .loading {
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 768px) {
+      .topo {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+      }
+      .menu {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .container {
+        padding: 20px 15px;
+      }
+      th, td {
+        padding: 10px 8px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topo">
+    <div class="topo-conteudo">
+      <div class="logo">
+        <img src="img/icone.png" alt="Logo da TaskUp" class="logo-img" />
+        <h1>TaskUp</h1>
+      </div>
+      <nav class="menu">
+        <a href="inicial.html">Início</a>
+        <a href="cadastroPeca.html">Cadastrar Peça</a>
+        <a href="cadastroAparelho.html">Cadastrar Aparelho</a>
+        <a href="cadastroCliente.html">Cadastrar Cliente</a>
+        <a href="tabelas.html">Tabelas</a>
+        <a href="agenda.html">Agenda</a>
+      </nav>
+      <div class="usuario">Olá, Técnico</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <section id="pecas-utilizadas">
+      <div class="titulo-com-botao">
+        <h2>Peças Utilizadas</h2>
+        <a href="tabelas.html" class="btn-voltar">← Voltar para resumo</a>
+      </div>
+      <div class="tabela-wrapper">
+        <table id="tabela-pecas-utilizadas" aria-label="Tabela com lista de peças utilizadas">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Aparelho</th>
+              <th>Peça</th>
+              <th>Quantidade Utilizada</th>
+              <th>Data de Utilização</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5" class="loading">Carregando dados das peças utilizadas...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Função para formatar data que vem como array [ano, mes, dia, hora, min] ou string ISO
+    function formatarData(dataArrayOrStr) {
+      if (!dataArrayOrStr) return '-';
+
+      let data;
+      if (Array.isArray(dataArrayOrStr)) {
+        const [ano, mes, dia, hora, minuto] = dataArrayOrStr;
+        data = new Date(ano, mes - 1, dia, hora, minuto);
+      } else {
+        data = new Date(dataArrayOrStr);
+      }
+
+      if (isNaN(data.getTime())) return '-';
+
+      const dia = data.getDate().toString().padStart(2, '0');
+      const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+      const ano = data.getFullYear();
+      const horas = data.getHours().toString().padStart(2, '0');
+      const minutos = data.getMinutes().toString().padStart(2, '0');
+
+      return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+    }
+
+    async function carregarPecasUtilizadas() {
+      const tbody = document.querySelector('#tabela-pecas-utilizadas tbody');
+      tbody.innerHTML = '<tr><td colspan="5" class="loading">Carregando dados...</td></tr>';
+
+      try {
+        const response = await fetch('http://localhost:8080/api/pecas_utilizadas');
+
+        if (!response.ok) {
+          throw new Error('Erro ao buscar peças utilizadas: ' + response.status);
+        }
+
+        const dados = await response.json();
+
+        if (dados.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="no-data">Nenhuma peça utilizada cadastrada.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = '';
+
+        dados.forEach(item => {
+          const tr = document.createElement('tr');
+
+          tr.innerHTML = `
+            <td>${item.id}</td>
+            <td title="${item.aparelho?.nomeAparelho || '-'}">${item.aparelho?.nomeAparelho || '-'}</td>
+            <td title="${item.peca?.nome || '-'}">${item.peca?.nome || '-'}</td>
+            <td>${item.quantidade_utilizada ?? '-'}</td>
+            <td>${formatarData(item.data_utilizacao)}</td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        tbody.innerHTML = `<tr><td colspan="5" style="color: red; font-weight: 600;">${error.message}</td></tr>`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', carregarPecasUtilizadas);
+  </script>
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="JavaScript/custom-alerts.js"></script>
+</body>
+</html>

@@ -3,27 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="css/CadastroCliente.css" />
   <title>Cadastro de Cliente | TaskUP</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/cadastroCliente.css" />
-  
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Adicionando o Vanilla Masker -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-masker/1.1.0/vanilla-masker.min.js"></script>
 </head>
 <body>
-  
+
   <!-- TOPO DO SITE -->
-  <div class="topo">
+   <div class="topo">
     <div class="topo-conteudo">
-     <div class="logo">
+        <div class="logo">
           <img src="img/icone.png" alt="Logo da TaskUp" class="logo-img">
           <h1>TaskUp</h1>
         </div>
     <nav class="menu">
-          <a href="inicial.html">Início</a>
+     <a href="inicial.html">Início</a>
           <a href="cadastroPeca.html">Cadastrar Peça</a>
           <a href="cadastroAparelho.html">Cadastrar Aparelho</a>
           <a href="cadastroCliente.html">Cadastrar Cliente</a>
@@ -32,15 +30,12 @@
     </nav>
     <div class="usuario">Olá, Técnico</div>
   </div>
-</div>
+  </div>
 
   <!-- CONTAINER PRINCIPAL -->
   <div class="container">
-    <form class="formulario">
-       <header class="pagina">
-      <h1>Cadastro de Cliente</h1>
-      <p class="description">Preencher corretamente todos os campos do cliente <span class="required">*</span></p>
-    </header>
+    <h1>Cadastro de Cliente</h1>
+    <p class="description">Preencher corretamente todos os campos do cliente <span class="required">*</span></p>
 
     <!-- Tipo de Pessoa -->
     <div class="client-type">
@@ -63,65 +58,68 @@
       <button type="button" id="buscarBtn" class="submit-btn" style="width: auto; padding: 10px 20px; font-size: 14px;">Buscar Cliente</button>
     </div>
 
+    <!-- Status da busca -->
+    <p id="statusBusca" style="margin-top: 10px;"></p>
+
     <!-- Formulário de Cliente -->
     <form id="clienteForm">
       <div class="form-grid">
+
         <!-- Pessoa Física -->
         <div id="nomePessoaFisica">
           <div class="input-group">
-            <label>Nome Completo <span class="required">*</span></label>
-            <input type="text" required />
+            <label for="nomeCompleto">Nome Completo <span class="required">*</span></label>
+            <input type="text" id="nomeCompleto" required />
           </div>
         </div>
 
         <!-- Pessoa Jurídica -->
         <div id="nomePessoaJuridica" style="display: none;" class="full-width">
           <div class="input-group">
-            <label>Nome da Empresa <span class="required">*</span></label>
-            <input type="text" required />
+            <label for="nomeEmpresa">Nome da Empresa <span class="required">*</span></label>
+            <input type="text" id="nomeEmpresa" required />
           </div>
         </div>
 
         <div class="input-group">
-          <label>Telefone <span class="required">*</span></label>
+          <label for="telefone">Telefone <span class="required">*</span></label>
           <input type="tel" id="telefone" placeholder="(DDD) Telefone" required />
         </div>
 
         <div class="input-group">
-          <label>E-mail <span class="required">*</span></label>
-          <input type="email" required />
+          <label for="email">E-mail <span class="required">*</span></label>
+          <input type="email" id="email" required />
         </div>
 
         <div class="input-group">
-          <label>CEP <span class="required">*</span></label>
+          <label for="cep">CEP <span class="required">*</span></label>
           <input type="text" id="cep" required />
         </div>
 
         <div class="input-group full-width">
-          <label>Endereço</label>
-          <input type="text" />
+          <label for="endereco">Endereço</label>
+          <input type="text" id="endereco" />
         </div>
 
         <div class="input-group">
-          <label>Bairro <span class="required">*</span></label>
-          <input type="text" required />
+          <label for="bairro">Bairro <span class="required">*</span></label>
+          <input type="text" id="bairro" required />
         </div>
 
         <div class="input-group">
-          <label>Cidade <span class="required">*</span></label>
-          <input type="text" required />
+          <label for="cidade">Cidade <span class="required">*</span></label>
+          <input type="text" id="cidade" required />
         </div>
 
         <div class="input-group">
-          <label>Estado <span class="required">*</span></label>
-          <input type="text" required />
+          <label for="estado">Estado <span class="required">*</span></label>
+          <input type="text" id="estado" required />
         </div>
       </div>
 
       <button type="submit" class="submit-btn">Cadastrar Cliente</button>
     </form>
   </div>
-
   <!-- Script para alternar Pessoa Física / Jurídica e aplicar máscaras -->
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -190,11 +188,11 @@
         event.preventDefault(); // Evitar o envio padrão do formulário
         
         // Coletar os dados do formulário
-        const formData = new FormData(this);  // Pega todos os dados do formulário, incluindo o arquivo
-
+        const formData = new FormData(this);  
         try {
           // Enviar os dados para a API (backend)
-          const response = await fetch('http://localhost:3000/api/clientes', {
+          
+      const response = await fetch('http://localhost:8080/api/cliente', {
             method: 'POST',
             body: formData // Envia o formulário como FormData, permitindo envio de arquivos
           });
@@ -216,6 +214,9 @@
       });
     });
   </script>
- 
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="JavaScript/custom-alerts.js"></script>
 </body>
 </html>
+<script src="JavaScript/CadastroCliente.js"></script>

@@ -6,10 +6,9 @@ function criarBotoesEditarExcluir(tipoTabela) {
 
   btnEditar.addEventListener('click', (event) => {
     const tr = event.target.closest('tr');
-    const id = tr.querySelector('td').textContent.trim(); // pega o ID da primeira célula
+    const id = tr.querySelector('td').textContent.trim();
 
     let urlEditar;
-
     switch (tipoTabela) {
       case 'clientes':
         urlEditar = `editarCliente.html?id=${id}`;
@@ -24,7 +23,6 @@ function criarBotoesEditarExcluir(tipoTabela) {
         alert('Tipo de tabela desconhecido');
         return;
     }
-
     window.location.href = urlEditar;
   });
 
@@ -38,7 +36,6 @@ function criarBotoesEditarExcluir(tipoTabela) {
 
     if (confirm(`Deseja realmente excluir o registro de ID ${id}?`)) {
       try {
-        // Define a URL da API conforme o tipo de tabela
         let urlExcluir;
         switch (tipoTabela) {
           case 'clientes':
@@ -57,9 +54,8 @@ function criarBotoesEditarExcluir(tipoTabela) {
 
         const res = await fetch(urlExcluir, { method: 'DELETE' });
         if (!res.ok) throw new Error('Erro ao excluir');
-
         alert(`Registro ${id} excluído com sucesso.`);
-        tr.remove(); // Remove a linha da tabela visualmente
+        tr.remove();
       } catch (error) {
         alert('Erro ao excluir registro.');
         console.error(error);
@@ -70,24 +66,22 @@ function criarBotoesEditarExcluir(tipoTabela) {
   const container = document.createElement('div');
   container.appendChild(btnEditar);
   container.appendChild(btnExcluir);
-
   return container;
 }
 
-// ====== Função auxiliar para formatar data a partir de array ======
+// ====== Funções auxiliares ======
 function formatarDataArray(dataArray) {
   if (!dataArray) return '';
   const [ano, mes, dia, hora, minuto] = dataArray;
   return `${dia.toString().padStart(2, '0')}/${mes.toString().padStart(2, '0')}/${ano} ${hora.toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
 }
 
-// ====== Função para gerar PDF da Ordem de Serviço (Histórico) ======
+// ====== Funções para gerar PDFs ======
 function gerarPDF(historico) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
   doc.text("TaskUP - Ordem de Serviço", 10, 10);
-
   doc.text(`ID Histórico: ${historico.id_historico ?? ''}`, 10, 20);
   doc.text(`Cliente: ${historico.cliente?.nome_cliente ?? ''}`, 10, 30);
   doc.text(`Aparelho: ${historico.aparelho?.nomeAparelho ?? ''}`, 10, 40);
@@ -102,9 +96,250 @@ function gerarPDF(historico) {
   doc.save(`OrdemServico_${historico.id_historico ?? 'sem-id'}.pdf`);
 }
 
-// ====== Funções para carregar tabelas via API ======
 
-// Carregar clientes
+    
+    async function gerarRelatorioPecasUtilizadas(dataInicio, dataFim) {
+  try {
+    // Verificar se as datas são válidas
+    if (!dataInicio || !dataFim) {
+      throw new Error('Datas de início e fim são obrigatórias');
+    }
+    
+    // Converter para formato ISO e ajustar o horário para cobrir todo o dia
+    const dataInicioISO = new Date(dataInicio).toISOString();
+    const dataFimISO = new Date(new Date(dataFim).setHours(23, 59, 59, 999)).toISOString();
+
+    // Montar URL com parâmetros de filtro
+    const url = `http://localhost:8080/api/pecas_utilizadas?dataInicio=${encodeURIComponent(dataInicioISO)}&dataFim=${encodeURIComponent(dataFimISO)}`;
+    
+    console.log('URL da requisição:', url); // Para debug
+
+    const res = await fetch(url);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Erro ao buscar peças utilizadas: ${res.status} - ${errorText}`);
+    }
+    
+    const pecasUtilizadas = await res.json();
+    
+    // Verificar se os dados foram recebidos corretamente
+    if (!Array.isArray(pecasUtilizadas)) {
+      throw new Error('Dados recebidos não estão no formato esperado');
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Título do relatório
+    doc.setFontSize(16);
+    doc.text("Relatório de Consumo de Peças", 105, 15, null, null, "center");
+    doc.setFontSize(12);
+    doc.text(`Período: ${formatarDataParaExibicao(dataInicio)} a ${formatarDataParaExibicao(dataFim)}`, 105, 22, null, null, "center");
+
+    // Cabeçalho da tabela
+    const headers = [
+      "ID",
+      "Aparelho ID", 
+      "Peça ID",
+      "Quantidade",
+      "Data Utilização"
+    ];
+
+    // Preparar dados da tabela
+    const dadosTabela = pecasUtilizadas.map(item => {
+      // Validar cada item antes de usar
+      if (!item) return ['Dado inválido', '', '', '', ''];
+      
+      return [
+        item.id || 'N/A',
+        item.aparelho?.id || 'N/A',
+        item.peca?.id || 'N/A',
+        item.quantidade_utilizada || '0',
+        item.data_utilizacao ? formatarDataArray(item.data_utilizacao) : 'Data não informada'
+      ];
+    });
+
+    // Se não houver dados, adicionar uma mensagem
+    if (dadosTabela.length === 0) {
+      doc.setFontSize(12);
+      doc.text("Nenhuma peça foi utilizada no período selecionado", 105, 40, null, null, "center");
+    } else {
+      // Gerar tabela usando autoTable
+      doc.autoTable({
+        head: [headers],
+        body: dadosTabela,
+        startY: 30,
+        styles: { fontSize: 10 },
+        headStyles: { 
+          fillColor: [36, 192, 235], 
+          textColor: 255, 
+          fontStyle: 'bold' 
+        },
+        margin: { left: 10, right: 10 }
+      });
+
+      // Calcular total de peças utilizadas
+      const totalPecas = pecasUtilizadas.reduce((sum, item) => {
+        const quantidade = parseInt(item.quantidade_utilizada) || 0;
+        return sum + quantidade;
+      }, 0);
+      
+      // Adicionar total ao final do relatório
+      const finalY = doc.lastAutoTable.finalY || 30;
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Total de peças utilizadas: ${totalPecas}`, 10, finalY + 10);
+    }
+
+    // Salvar o PDF
+    doc.save(`Relatorio_Pecas_Utilizadas_${dataInicio}_a_${dataFim}.pdf`);
+
+  } catch (error) {
+    console.error('Erro detalhado:', error);
+    alert('Erro ao gerar relatório: ' + error.message);
+    
+    // Criar um PDF com mensagem de erro
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(12);
+    doc.text("Erro ao gerar relatório", 105, 15, null, null, "center");
+    doc.text(error.message, 10, 30);
+    doc.save(`Erro_Relatorio_Pecas_${new Date().toISOString()}.pdf`);
+  }
+}
+
+// Função auxiliar para formatar data para exibição
+function formatarDataParaExibicao(dataString) {
+  try {
+    const date = new Date(dataString);
+    return date.toLocaleDateString('pt-BR');
+  } catch (e) {
+    return dataString; // Retorna o original se não puder formatar
+  }
+}
+
+async function gerarRelatorioCustoOperacionalPDF(dataInicio, dataFim) {
+  try {
+    console.log("Iniciando relatório... Datas:", dataInicio, dataFim);
+
+    // 1. Converter datas para o formato correto
+    function parseDate(input) {
+      if (input.includes('-')) { // Formato YYYY-MM-DD (input type="date")
+        return new Date(input);
+      } else { // Formato DD/MM/YYYY
+        const [dia, mes, ano] = input.split('/');
+        return new Date(ano, mes - 1, dia);
+      }
+    }
+
+    const dataInicioObj = parseDate(dataInicio);
+    const dataFimObj = parseDate(dataFim);
+    dataFimObj.setHours(23, 59, 59, 999); // Ajusta para fim do dia
+
+    console.log("Datas convertidas:", dataInicioObj, dataFimObj);
+
+    // 2. Buscar dados da API
+    const res = await fetch('http://localhost:8080/api/historico');
+    if (!res.ok) throw new Error(`Erro HTTP: ${res.status}`);
+    const historico = await res.json();
+    console.log("Dados da API:", historico);
+
+    // 3. Filtrar por período
+    const historicoFiltrado = historico.filter(item => {
+      const dataItem = item.data_saida || item.data_entrada;
+      if (!dataItem) return false;
+
+      let dataObj;
+      if (Array.isArray(dataItem)) { // Formato [ano, mês, dia, ...]
+        dataObj = new Date(dataItem[0], dataItem[1] - 1, dataItem[2]);
+      } else if (typeof dataItem === 'string') { // Formato ISO
+        dataObj = new Date(dataItem);
+      } else {
+        return false;
+      }
+
+      return dataObj >= dataInicioObj && dataObj <= dataFimObj;
+    });
+
+    console.log("Dados filtrados:", historicoFiltrado);
+
+    // 4. Gerar PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.text("Relatório de Custo Operacional", 105, 15, null, null, "center");
+    doc.setFontSize(12);
+    doc.text(`Período: ${dataInicio} a ${dataFim}`, 105, 22, null, null, "center");
+
+    if (historicoFiltrado.length === 0) {
+      doc.setFontSize(12);
+      doc.text("Nenhum serviço encontrado no período selecionado", 105, 40, null, null, "center");
+    } else {
+      // Preparar dados da tabela
+      const dadosTabela = historicoFiltrado.map(item => {
+        const valor = parseFloat(item.valor_total || 0);
+        return [
+          item.id_historico || item.id || '',
+          item.cliente?.nome_cliente || 'Cliente não informado',
+          item.aparelho?.nomeAparelho || item.nomeAparelho || 'Aparelho não informado',
+          `R$ ${valor.toFixed(2)}`,
+          item.status_servico || item.status || 'Status não informado',
+          item.nome_tecnico || 'Técnico não informado'
+        ];
+      });
+
+      // Adicionar tabela
+      doc.autoTable({
+        head: [['ID', 'Cliente', 'Aparelho', 'Valor', 'Status', 'Técnico']],
+        body: dadosTabela,
+        startY: 30,
+        styles: { fontSize: 9 },
+        headStyles: { 
+          fillColor: [36, 192, 235],
+          textColor: 255,
+          fontStyle: 'bold'
+        }
+      });
+
+      // Calcular totais
+      const total = historicoFiltrado.reduce((sum, item) => sum + (parseFloat(item.valor_total) || 0), 0);
+      const finalY = doc.lastAutoTable.finalY || 30;
+
+      doc.setFontSize(12);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Total: R$ ${total.toFixed(2)}`, 14, finalY + 10);
+      doc.text(`Total de serviços: ${historicoFiltrado.length}`, 14, finalY + 20);
+    }
+
+    doc.save(`Relatorio_Custo_Operacional_${dataInicio.replace(/\//g, '-')}_a_${dataFim.replace(/\//g, '-')}.pdf`);
+
+  } catch (error) {
+    console.error('Erro ao gerar relatório:', error);
+    alert('Erro ao gerar relatório: ' + error.message);
+    
+    // Criar PDF de erro
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(12);
+    doc.text("Erro ao gerar relatório", 105, 15, null, null, "center");
+    doc.text(error.message, 10, 30);
+    doc.save(`Erro_Relatorio_Custo_${new Date().toISOString()}.pdf`);
+  }
+}
+
+// Função auxiliar para formatar data
+function formatarDataParaExibicao(dataString) {
+  try {
+    const date = new Date(dataString);
+    return date.toLocaleDateString('pt-BR');
+  } catch (e) {
+    return dataString;
+  }
+}
+// ====== Funções para carregar tabelas ======
 async function carregarClientes() {
   try {
     const res = await fetch('http://localhost:8080/api/cliente');
@@ -113,8 +348,9 @@ async function carregarClientes() {
 
     const tbody = document.querySelector('#tabela-clientes tbody');
     tbody.innerHTML = '';
+    const ultimos5 = clientes.slice(-5);
 
-    clientes.forEach(cliente => {
+    ultimos5.forEach(cliente => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${cliente.id}</td>
@@ -134,7 +370,6 @@ async function carregarClientes() {
       const tdAcoes = document.createElement('td');
       tdAcoes.appendChild(criarBotoesEditarExcluir('clientes'));
       tr.appendChild(tdAcoes);
-
       tbody.appendChild(tr);
     });
   } catch (error) {
@@ -143,7 +378,6 @@ async function carregarClientes() {
   }
 }
 
-// Carregar aparelhos
 async function carregarAparelhos() {
   try {
     const res = await fetch('http://localhost:8080/api/aparelhos');
@@ -152,8 +386,9 @@ async function carregarAparelhos() {
 
     const tbody = document.querySelector('#tabela-aparelhos tbody');
     tbody.innerHTML = '';
+    const ultimos5 = aparelhos.slice(-5);
 
-    aparelhos.forEach(aparelho => {
+    ultimos5.forEach(aparelho => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${aparelho.id}</td>
@@ -170,10 +405,10 @@ async function carregarAparelhos() {
         <td>${aparelho.status || ''}</td>
         <td><img src="${aparelho.foto_aparelho || '#'}" alt="Foto" style="max-width: 60px; max-height: 60px;"></td>
       `;
+
       const tdAcoes = document.createElement('td');
       tdAcoes.appendChild(criarBotoesEditarExcluir('aparelhos'));
       tr.appendChild(tdAcoes);
-
       tbody.appendChild(tr);
     });
   } catch (error) {
@@ -182,7 +417,54 @@ async function carregarAparelhos() {
   }
 }
 
-// Carregar peças
+async function carregarHistorico() {
+  try {
+    const res = await fetch('http://localhost:8080/api/historico');
+    if (!res.ok) throw new Error('Erro ao buscar histórico');
+    const historico = await res.json();
+
+    const tbody = document.querySelector('#tabela-historico tbody');
+    if (!tbody) {
+      console.error('tbody da tabela-historico não encontrado no DOM!');
+      return;
+    }
+    tbody.innerHTML = '';
+
+    historico.forEach(item => {
+      const dataEntrada = Array.isArray(item.data_entrada) ? formatarDataArray(item.data_entrada) : (item.data_entrada ? new Date(item.data_entrada).toLocaleString() : '');
+      const dataSaida = Array.isArray(item.data_saida) ? formatarDataArray(item.data_saida) : (item.data_saida ? new Date(item.data_saida).toLocaleString() : '');
+      let valor = parseFloat(item.valor_total);
+      valor = isNaN(valor) ? '' : `R$ ${valor.toFixed(2)}`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.id_historico ?? item.id ?? ''}</td>
+        <td>${item.cliente?.nome_cliente || ''}</td>
+        <td>${item.aparelho?.nomeAparelho || ''}</td>
+        <td>${item.defeito || ''}</td>
+        <td>${dataEntrada}</td>
+        <td>${dataSaida}</td>
+        <td>${item.pecas_aplicadas || ''}</td>
+        <td>${item.status_servico || ''}</td>
+        <td>${item.nome_tecnico || ''}</td>
+        <td>${valor}</td>
+      `;
+
+      const tdAcoes = document.createElement('td');
+      const btnPdf = document.createElement('button');
+      btnPdf.textContent = 'Gerar PDF';
+      btnPdf.className = 'btn-os';
+      btnPdf.addEventListener('click', () => gerarPDF(item));
+      tdAcoes.appendChild(btnPdf);
+      tr.appendChild(tdAcoes);
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error('Erro carregarHistorico:', error);
+    alert('Erro ao carregar histórico');
+  }
+}
+
 async function carregarPecas() {
   try {
     const res = await fetch('http://localhost:8080/api/peca');
@@ -191,8 +473,9 @@ async function carregarPecas() {
 
     const tbody = document.querySelector('#tabela-pecas tbody');
     tbody.innerHTML = '';
+    const ultimos5 = pecas.slice(-5);
 
-    pecas.forEach(peca => {
+    ultimos5.forEach(peca => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${peca.id}</td>
@@ -206,7 +489,6 @@ async function carregarPecas() {
       const tdAcoes = document.createElement('td');
       tdAcoes.appendChild(criarBotoesEditarExcluir('pecas'));
       tr.appendChild(tdAcoes);
-
       tbody.appendChild(tr);
     });
   } catch (error) {
@@ -215,53 +497,6 @@ async function carregarPecas() {
   }
 }
 
-// Carregar histórico
-async function carregarHistorico() {
-  try {
-    const res = await fetch('http://localhost:8080/api/historico');
-    if (!res.ok) throw new Error('Erro ao buscar histórico');
-    const historicos = await res.json();
-
-    const tbody = document.querySelector('#tabela-historico tbody');
-    tbody.innerHTML = '';
-
-    historicos.forEach(historico => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${historico.id_historico || ''}</td>
-        <td>${historico.id_cliente || ''}</td>
-        <td>${historico.id_aparelho || ''}</td>
-        <td>${formatarDataArray(historico.data_entrada) || ''}</td>
-        <td>${formatarDataArray(historico.data_saida) || ''}</td>
-        <td>${historico.status_servico || ''}</td>
-        <td>${historico.observacoes || ''}</td>
-        <td>${historico.nome_tecnico || ''}</td>
-        <td>${historico.pecas_aplicadas || ''}</td>
-        <td>${historico.servico_executado || ''}</td>
-        <td>${historico.defeito || ''}</td>
-        <td>R$ ${historico.valor_total?.toFixed(2) || ''}</td>
-      `;
-
-      const tdAcoes = document.createElement('td');
-      const btnPDF = document.createElement('button');
-      btnPDF.className = 'btn-os';
-      btnPDF.textContent = 'Gerar OS';
-
-      btnPDF.addEventListener('click', () => {
-        gerarPDF(historico);
-      });
-
-      tdAcoes.appendChild(btnPDF);
-      tr.appendChild(tdAcoes);
-      tbody.appendChild(tr);
-    });
-  } catch (error) {
-    console.error(error);
-    alert('Erro ao carregar histórico');
-  }
-}
-
-// Carregar peças utilizadas
 async function carregarPecasUtilizadas() {
   try {
     const res = await fetch('http://localhost:8080/api/pecas_utilizadas');
@@ -272,19 +507,15 @@ async function carregarPecasUtilizadas() {
     tbody.innerHTML = '';
 
     pecasUtilizadas.forEach(item => {
-      const dataArr = item.data_utilizacao;
-      const dataObj = dataArr ? new Date(dataArr[0], dataArr[1] - 1, dataArr[2], dataArr[3], dataArr[4], dataArr[5]) : null;
-      const dataFormatada = dataObj ? dataObj.toLocaleDateString() + ' ' + dataObj.toLocaleTimeString() : '';
-
+      const dataFormatada = formatarDataArray(item.data_utilizacao);
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${item.id}</td>
-        <td>${item.aparelho.id}</td>
-        <td>${item.peca.id}</td>
-        <td>${item.quantidade_utilizada}</td>
-        <td>${item.data_utilizacao}</td>
+        <td>${item.id ?? ''}</td>
+        <td>${item.aparelho?.id ?? ''}</td>
+        <td>${item.peca?.id ?? ''}</td>
+        <td>${item.quantidade_utilizada ?? ''}</td>
+        <td>${dataFormatada}</td>
       `;
-
       tbody.appendChild(tr);
     });
   } catch (error) {
@@ -293,161 +524,7 @@ async function carregarPecasUtilizadas() {
   }
 }
 
-// ====== Função para gerar Relatório de Peças Utilizadas PDF filtrado ======
-async function gerarRelatorioPecasUtilizadas(dataInicio, dataFim) {
-  try {
-    const res = await fetch('http://localhost:8080/api/pecas_utilizadas');
-    if (!res.ok) throw new Error('Erro ao buscar peças utilizadas');
-    const pecasUtilizadas = await res.json();
-
-    const filtradas = pecasUtilizadas.filter(item => {
-      if (!item.data_utilizacao) return false;
-      const d = new Date(
-        item.data_utilizacao[0],
-        item.data_utilizacao[1] - 1,
-        item.data_utilizacao[2],
-        item.data_utilizacao[3],
-        item.data_utilizacao[4],
-        item.data_utilizacao[5]
-      );
-      const dataInicioObj = new Date(dataInicio);
-      const dataFimObj = new Date(dataFim);
-      dataFimObj.setHours(23, 59, 59, 999);
-      return d >= dataInicioObj && d <= dataFimObj;
-    });
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.text('Relatório de Peças Utilizadas', 10, 10);
-    const headers = ['ID', 'Aparelho ID', 'Peça ID', 'Quantidade', 'Data Utilização'];
-    let y = 20;
-
-    headers.forEach((header, i) => {
-      doc.text(header, 10 + i * 35, y);
-    });
-
-    y += 10;
-
-    filtradas.forEach(item => {
-      doc.text(String(item.id), 10, y);
-      doc.text(String(item.aparelho.id), 45, y);
-      doc.text(String(item.peca.id), 80, y);
-      doc.text(String(item.quantidade_utilizada), 115, y);
-
-      const dataArr = item.data_utilizacao;
-      const dataObj = dataArr ? new Date(dataArr[0], dataArr[1] - 1, dataArr[2], dataArr[3], dataArr[4], dataArr[5]) : null;
-      const dataFormatada = dataObj ? dataObj.toLocaleDateString() + ' ' + dataObj.toLocaleTimeString() : '';
-
-      doc.text(dataFormatada, 150, y);
-      y += 10;
-
-      if (y > 280) {
-        doc.addPage();
-        y = 20;
-      }
-    });
-
-    doc.save(`Relatorio_Pecas_Utilizadas_${dataInicio}_a_${dataFim}.pdf`);
-  } catch (error) {
-    alert('Erro ao gerar relatório: ' + error.message);
-    console.error(error);
-  }
-}
-
-// ====== Função para gerar Relatório de Custo Operacional PDF ======
-async function gerarRelatorioCustoOperacionalPDF(dataInicio, dataFim) {
-  try {
-    const res = await fetch('http://localhost:8080/api/aparelhos');
-    if (!res.ok) throw new Error('Erro ao buscar aparelhos para relatório');
-    const aparelhos = await res.json();
-
-    // Filtrar aparelhos pelo período informado
-    const dataInicioObj = new Date(dataInicio);
-    const dataFimObj = new Date(dataFim);
-    dataFimObj.setHours(23, 59, 59, 999);
-
-    const aparelhosFiltrados = aparelhos.filter(aparelho => {
-      const dataCadastro = new Date(aparelho.dataCadastro);
-      return dataCadastro >= dataInicioObj && dataCadastro <= dataFimObj;
-    });
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFont('courier'); // fonte monoespaçada para melhor alinhamento
-    doc.setFontSize(12);
-
-    let y = 10;
-
-    doc.text('Relatório de Custo Operacional', 10, y);
-    y += 10;
-    doc.text(`Período: ${dataInicio} a ${dataFim}`, 10, y);
-    y += 15;
-
-    const colX = [10, 20, 65, 120, 145, 180];
-
-    doc.text('ID', colX[0], y);
-    doc.text('Cliente', colX[1], y);
-    doc.text('Nome', colX[2], y);
-    doc.text('Valor Total', colX[3], y);
-    doc.text('Status', colX[4], y);
-    doc.text('Técnico', colX[5], y);
-    y += 7;
-
-    doc.setLineWidth(0.5);
-    doc.line(10, y, 200, y);
-    y += 5;
-
-    let somaTotal = 0;
-
-aparelhosFiltrados.forEach(aparelho => {
-  if (y > 280) {
-    doc.addPage();
-    y = 10;
-  }
-
-  // Converte para número com segurança
-  let valor = parseFloat(aparelho.valor_total);
-  if (isNaN(valor)) valor = 0;
-
-  somaTotal += valor;
-
-  doc.text(String(aparelho.id), colX[0], y);
-  doc.text(aparelho.cliente?.nome_cliente || '', colX[1], y);
-  doc.text(aparelho.nomeAparelho || '', colX[2], y);
-  doc.text(`R$ ${valor.toFixed(2)}`, colX[3], y);
-  doc.text(aparelho.status || '', colX[4], y);
-  doc.text(aparelho.nome_tecnico || '', colX[5], y);
-
-  y += 7;
-});
-
-// Exibir total no final
-y += 5;
-doc.line(10, y, 200, y);
-y += 10;
-
-doc.setFontSize(14);
-doc.text(`Custo Operacional Total: R$ ${somaTotal.toFixed(2)}`, 10, y);
-
-
-    y += 5;
-    doc.line(10, y, 200, y);
-    y += 10;
-
-    doc.setFontSize(14);
-    doc.text(`Custo Operacional Total: R$ ${somaTotal.toFixed(2)}`, 10, y);
-
-    doc.save(`Relatorio_Custo_Operacional_${dataInicio}_a_${dataFim}.pdf`);
-
-  } catch (error) {
-    alert('Erro ao gerar relatório: ' + error.message);
-    console.error(error);
-  }
-}
-
-// ====== Configuração inicial do DOM ======
+// ====== Configuração inicial ======
 document.addEventListener('DOMContentLoaded', () => {
   // Carregar dados nas tabelas
   carregarClientes();
@@ -456,22 +533,34 @@ document.addEventListener('DOMContentLoaded', () => {
   carregarHistorico();
   carregarPecasUtilizadas();
 
-  // Modais e botões do Relatório de Peças Utilizadas
-  const btnAbrirModal = document.getElementById('btnAbrirModalRelatorio');
-  const modal = document.getElementById('modalFiltroRelatorio');
-  const btnCancelar = document.getElementById('btnCancelarFiltro');
-  const btnConfirmar = document.getElementById('btnConfirmarFiltro');
+  // Configurar botão de relatório de peças utilizadas
+  const btnRelatorioPecas = document.getElementById('btnRelatorioPecas');
+  if (btnRelatorioPecas) {
+    btnRelatorioPecas.addEventListener('click', () => {
+      console.log('Botão de relatório de peças clicado!');
+      const modalPecas = document.getElementById('modalFiltroRelatorio');
+      if (modalPecas) {
+        modalPecas.style.display = 'flex';
+        
+        // Definir datas padrão
+        const hoje = new Date().toISOString().split('T')[0];
+        document.getElementById('modalDataInicio').value = hoje;
+        document.getElementById('modalDataFim').value = hoje;
+      }
+    });
+  }
 
-  if (btnAbrirModal && modal && btnCancelar && btnConfirmar) {
-    btnAbrirModal.addEventListener('click', () => {
-      modal.style.display = 'flex';
+  // Configurar modal de filtro para peças utilizadas
+  const modalPecas = document.getElementById('modalFiltroRelatorio');
+  const btnCancelarPecas = document.getElementById('btnCancelarFiltro');
+  const btnConfirmarPecas = document.getElementById('btnConfirmarFiltro');
+
+  if (modalPecas && btnCancelarPecas && btnConfirmarPecas) {
+    btnCancelarPecas.addEventListener('click', () => {
+      modalPecas.style.display = 'none';
     });
 
-    btnCancelar.addEventListener('click', () => {
-      modal.style.display = 'none';
-    });
-
-    btnConfirmar.addEventListener('click', async () => {
+    btnConfirmarPecas.addEventListener('click', async () => {
       const dataInicio = document.getElementById('modalDataInicio').value;
       const dataFim = document.getElementById('modalDataFim').value;
 
@@ -485,11 +574,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       await gerarRelatorioPecasUtilizadas(dataInicio, dataFim);
-      modal.style.display = 'none';
+      modalPecas.style.display = 'none';
     });
   }
 
-  // Modal e botões para Relatório de Custo Operacional
+  // Configurar modal de filtro para custo operacional
   const btnRelatorioCusto = document.getElementById('btnRelatorioCusto');
   const modalCusto = document.getElementById('modalFiltroCusto');
   const btnCancelarCusto = document.getElementById('btnCancelarCusto');

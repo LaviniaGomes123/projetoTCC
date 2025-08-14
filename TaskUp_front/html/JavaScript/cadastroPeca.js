@@ -1,33 +1,36 @@
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.querySelector("form");
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const form = document.querySelector("form");
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
 
-    form.addEventListener("submit", async function (event) {
-      event.preventDefault();
+    const data = {
+      nome: document.getElementById('peca').value,
+      descricao: document.getElementById('descricao').value,
+      preco_unitario: parseFloat(document.getElementById('preco').value),
+      quantidade_estoque: parseInt(document.getElementById('estoque').value),
+      estoque_minimo: parseInt(document.getElementById('minimo').value)
+    };
 
-      const formData = new FormData(form);
+    try {
+      const response = await fetch("http://localhost:8080/api/peca", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
 
-      try {
-        const response = await fetch("/api/peca", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error("Erro ao cadastrar a peça.");
-        }
-
-        const result = await response.json();
-
-        if (result.success) {
-          alert("Peça cadastrada com sucesso!");
-          form.reset();
-        } else {
-          alert("Erro: " + (result.message || "Não foi possível cadastrar a peça."));
-        }
-      } catch (error) {
-        console.error("Erro ao enviar o formulário:", error);
-        alert("Erro ao processar o cadastro. Tente novamente mais tarde.");
+      if (!response.ok) {
+        throw new Error("Erro ao cadastrar a peça.");
       }
-    });
+
+      alert("Peça cadastrada com sucesso!");
+      form.reset();
+
+    } catch (error) {
+      console.error("Erro ao enviar o formulário:", error);
+      alert("Erro ao processar o cadastro. Tente novamente mais tarde.");
+    }
   });
+});

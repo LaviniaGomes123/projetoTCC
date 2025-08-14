@@ -1,4 +1,4 @@
-/* Estilos gerais */
+/* Estilos gerais (mantendo seu padrão original) */
 * {
   margin: 0;
   padding: 0;
@@ -30,7 +30,7 @@ body {
     align-items: center;
     justify-content: space-between;
     max-width: 1200px;
-    width: 100%; /* Adicionado para ocupar o espaço total */
+    width: 100%;
     margin: 0 auto;
 }
 
@@ -102,8 +102,8 @@ header.pagina h1 {
     color: #444;
     font-weight: 700;
 }
-/*final do css do cabeçalho*/
 
+/* --- Container --- */
 .container {
   width: 90%;
   max-width: 800px;
@@ -115,8 +115,7 @@ header.pagina h1 {
   padding: 30px;
 }
 
-
-/* --- Formulário --- */
+/* --- Formulário (mantendo seu padrão) --- */
 .formulario {
   display: flex;
   flex-direction: column;
@@ -135,8 +134,28 @@ header.pagina h1 {
     font-size: 1em;
 }
 
+/* Estilo específico para o campo datetime-local (nova adição) */
+input[type="datetime-local"] {
+    background-color: #f8f9fa;
+    padding: 12px 15px;
+    border: 1px solid #24c0eb;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #333;
+    width: 100%;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Mantendo o mesmo estilo de focus dos outros campos */
+input[type="datetime-local"]:focus {
+    outline: none;
+    border-color: #24c0eb;
+    box-shadow: 0 0 0 3px rgba(36, 192, 235, 0.2);
+}
+
+/* Estilos dos outros campos (mantendo seu padrão) */
 input[type="text"],
-input[type="date"],
 textarea {
     background-color: #f8f9fa;
     padding: 12px 15px;
@@ -149,7 +168,6 @@ textarea {
 }
 
 input[type="text"]:focus,
-input[type="date"]:focus,
 textarea:focus {
     outline: none;
     border-color: #24c0eb;
@@ -160,7 +178,7 @@ textarea {
     resize: vertical;
 }
 
-/* --- Botões --- */
+/* --- Botões (mantendo seu padrão) --- */
 .botoes {
     display: flex;
     flex-direction: row;
@@ -200,7 +218,7 @@ textarea {
     transform: translateY(-2px);
 }
 
-/* --- Responsividade --- */
+/* --- Responsividade (mantendo seu padrão) --- */
 @media (max-width: 768px) {
     .topo-conteudo {
         flex-direction: column;
@@ -224,4 +242,27 @@ textarea {
         padding: 20px;
         margin: 0 10px 50px;
     }
+}
+
+.status-select {
+    background-color: #f8f9fa;
+    padding: 12px 15px;
+    border: 1px solid #24c0eb;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #333;
+    width: 100%;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2324c0eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
+.status-select:focus {
+    outline: none;
+    border-color: #24c0eb;
+    box-shadow: 0 0 0 3px rgba(36, 192, 235, 0.2);
 }

@@ -2,12 +2,17 @@
 <html lang="pt-BR">
 <head>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tabelas | TaskUP</title>
    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+
 <style>
     /* CSS conforme seu padrão */
   /* Estilos gerais */
@@ -336,7 +341,7 @@ header.pagina h1 {
 #modalFiltroCusto input[type="date"] {
   padding: 8px 10px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #cccccc;
   width: 100%;
   font-family: 'Inter', sans-serif;
   font-size: 14px;
@@ -381,6 +386,12 @@ header.pagina h1 {
   background-color: #d32f2f;
   transform: scale(1.02);
 }
+.titulo-com-seta {
+  display: flex;
+  align-items: center; /* centraliza verticalmente título e seta */
+  gap: 8px; /* espaçamento entre título e seta */
+}
+
 
 /* Animação suave ao abrir */
 @keyframes modalFade {
@@ -390,6 +401,9 @@ header.pagina h1 {
 
   </style>
 </head>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="custom-alerts.js"></script>
 <body>
   <div class="topo">
     <div class="topo-conteudo">
@@ -410,42 +424,56 @@ header.pagina h1 {
   </div>
   <div class="container">
 
-    <!-- Clientes -->
-    <section id="clientes">
-      <div class="titulo-com-botao">
-        <h2>Clientes</h2>
-      </div>
-      <div class="tabela-wrapper">
-        <table id="tabela-clientes">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nome</th>
-              <th>CPF</th>
-              <th>CNPJ</th>
-              <th>CEP</th>
-              <th>Endereço</th>
-              <th>Número</th>
-              <th>Bairro</th>
-              <th>Cidade</th>
-              <th>Estado</th>
-              <th>Email</th>
-              <th>Telefone</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
+<!-- Clientes -->
+<div class="titulo-com-seta">
+  <h2>Clientes</h2>
+  <a href="clientes.html" class="seta-expandir" title="Ver todos os clientes">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 9L12 16L5 9" stroke="#24c0eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </a>
+</div>
+  
+  <div class="tabela-wrapper">
+    <table id="tabela-clientes">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>CPF</th>
+          <th>CNPJ</th>
+          <th>CEP</th>
+          <th>Endereço</th>
+          <th>Número</th>
+          <th>Bairro</th>
+          <th>Cidade</th>
+          <th>Estado</th>
+          <th>Email</th>
+          <th>Telefone</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
 
     <!-- Aparelhos -->
-    <section id="aparelhos">
-      <div class="titulo-com-botao">
-        <h2>Aparelhos</h2>
-      </div>
-      <div class="tabela-wrapper">
-        <table id="tabela-aparelhos">
+<section id="aparelhos">
+  <div class="titulo-com-botao" style="display:flex; align-items:center; justify-content:space-between; border-bottom: 2px solid #24c0eb; padding-bottom:10px; margin-bottom: 20px;">
+     <div class="titulo-com-seta" style="display:flex; align-items:center; gap:8px;">
+      <h2 style="margin:0; font-weight:700; color:#333;">
+      <h2>Aparelhos</h2>
+      <a href="aparelhos.html" class="seta-expandir" title="Ver todos os aparelhos">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 9L12 16L5 9" stroke="#24c0eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+  <div class="tabela-wrapper">
+    <table id="tabela-aparelhos">
           <thead>
             <tr>
               <th>ID</th>
@@ -469,41 +497,58 @@ header.pagina h1 {
       </div>
     </section>
 
-    <!-- Histórico -->
-    <section id="historico">
-  <div class="titulo-com-botao">
-    <h2>Histórico</h2>
+<section id="historico">
+  <div class="titulo-com-botao" style="display:flex; align-items:center; justify-content:space-between; border-bottom: 2px solid #24c0eb; padding-bottom:10px; margin-bottom: 20px;">
+    <div class="titulo-com-seta" style="display:flex; align-items:center; gap:8px;">
+      <h2 style="margin:0; font-weight:700; color:#333;">Histórico</h2>
+      <a href="historico.html" class="seta-expandir" title="Ver todos os históricos" style="display:flex; align-items:center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 9L12 16L5 9" stroke="#24c0eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+
     <button id="btnRelatorioCusto" class="btn-relatorio">Gerar Relatório de Custo Operacional</button>
   </div>
-      <div class="tabela-wrapper">
-        <table id="tabela-historico">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Cliente ID</th>
-              <th>Aparelho ID</th>
-              <th>Data Entrada</th>
-              <th>Data Saída</th>
-              <th>Status</th>
-              <th>Observações</th>
-              <th>Técnico</th>
-              <th>Peças Aplicadas</th>
-              <th>Serviço Executado</th>
-              <th>Defeito</th>
-              <th>Valor Total</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </section>
+
+  
+  
+  <div class="tabela-wrapper">
+<table id="tabela-historico">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Cliente</th>
+      <th>Aparelho</th>
+      <th>Defeito</th>
+      <th>Data Entrada</th>
+      <th>Data Saída</th>
+      <th>Observações</th>
+      <th>Status</th>
+      <th>Técnico</th>
+      <th>Valor Total</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+  </div>
+</section>
 
     <!-- Peças -->
-    <section id="pecas">
-      <div class="titulo-com-botao">
-        <h2>Peças</h2>
-      </div>
+<section id="pecas">
+  <div class="titulo-com-botao" style="display:flex; align-items:center; justify-content:space-between; border-bottom: 2px solid #24c0eb; padding-bottom:10px; margin-bottom: 20px;">
+     <div class="titulo-com-seta" style="display:flex; align-items:center; gap:8px;">
+      <h2 style="margin:0; font-weight:700; color:#333;">
+      <h2>Peças</h2>
+      <a href="pecas.html" class="seta-expandir" title="Ver todos os aparelhos">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 9L12 16L5 9" stroke="#24c0eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </div>
       <div class="tabela-wrapper">
         <table id="tabela-pecas">
           <thead>
@@ -523,12 +568,18 @@ header.pagina h1 {
     </section>
 
     <!-- Peças Utilizadas -->
-     <div id="titulo-pecas-utilizadas" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-  <h2 style="margin: 0;">Peças Utilizadas</h2>
-  <button id="btnAbrirModalRelatorio" class="btn-relatorio">Gerar Relatório de Consumo de Peças</button>
-</div>
-<hr style="border: 1px solid #24c0eb; margin-top: 0; margin-bottom: 10px;" />
-
+     <section id="titulo-pecas-utilizadas">
+  <div class="titulo-com-botao" style="display:flex; align-items:center; justify-content:space-between; border-bottom: 2px solid #24c0eb; padding-bottom:10px; margin-bottom: 20px;">
+    <div class="titulo-com-seta" style="display:flex; align-items:center; gap:8px;">
+      <h2 style="margin:0; font-weight:700; color:#333;">Peças Utilizadas</h2> 
+      <a href="pecasUtilizadas.html" class="seta-expandir" title="Ver todos os históricos" style="display:flex; align-items:center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 9L12 16L5 9" stroke="#24c0eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+     <button id="btnRelatorioPecas" class="btn-relatorio">Gerar Relatório de Consumo de Peças</button>
+  </div>
     <section id="pecas-utilizadas">
       <div class="tabela-wrapper">
         <table id="tabela-pecas-utilizadas">
@@ -564,8 +615,8 @@ header.pagina h1 {
   </div>
 </div>
 
-<!-- Modal Filtro Relatório Custo Operacional -->
-<div id="modalFiltroCusto">
+<!-- Modal Filtro Custo Operacional -->
+<div id="modalFiltroCusto" style="display: none;">
   <div>
     <h3>Filtrar Relatório - Custo Operacional</h3>
     <label>
@@ -581,7 +632,13 @@ header.pagina h1 {
   </div>
 </div>
 
+
+
   </div>
   <script src="javaScript/tabelas.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="JavaScript/custom-alerts.js"></script>
+  
 </body>
-</html>
+</html> 

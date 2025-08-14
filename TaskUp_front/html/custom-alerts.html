@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto com Alertas Personalizados</title>
+</head>
+<body>
+    <button onclick="fazerAlgo()">Disparar Alerta</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="custom-alerts.js"></script>
+
+    <script>
+        // Agora, mesmo que você chame a função nativa...
+        function fazerAlgo() {
+            alert('Este é um alerta nativo, mas com layout da SweetAlert2!');
+        }
+    </script>
+</body>
+</html>
